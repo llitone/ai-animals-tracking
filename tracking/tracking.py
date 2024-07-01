@@ -15,6 +15,7 @@ class TrackedObject(object):
         self.predicted_types = defaultdict(int)
         self.first_detection = None
         self.last_detection = None
+        self.cropped_frame = None
 
     def detect(self):
         if self.first_detection is None:
@@ -39,20 +40,29 @@ class TrackedObject(object):
     def set_max_points_count(cls, value):
         cls.MAX_POINTS = value
 
+    def save(self, path):
+        cv2.imwrite(path, self.cropped_frame)
+
     def __str__(self):
         return f"({self.first_detection}) - ({self.last_detection}): {self.type}(count={len(self.points)}) "
 
     def __len__(self):
+        if not self.tracked_points:
+            return 0
         return sum(self.predicted_types.values())
+
+    def __repr__(self):
+        return f"TrackedObject<{self.type}>"
 
 
 class Tracker(object):
-    # MODEL PARAMS
+    # MODEL THRESHOLDS
     CONF = 0.3
     IOU = 0.5
-    VERBOSE = False
+    FRAMES_COUNT = 10
 
     # VISUALIZE
+    VERBOSE = False
     SHOW_PREDS = True
     SAVE = False
 
@@ -64,7 +74,7 @@ class Tracker(object):
         self.model = YOLO(weights_path)
 
     def track_next_frame(self, frame: np.array) -> list[Results]:
-        return self.model.track(
+        results = self.model.track(
             frame,
             persist=True,
             conf=self.CONF,
@@ -73,6 +83,41 @@ class Tracker(object):
             save=self.SAVE,
             classes=[0, 2, 3, 6, 7]
         )
+        if results[0].boxes.id is None:
+            if self.SHOW_PREDS:
+                cv2.imshow("YOLOv8 Tracking", frame)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    return results
+            return results
+        boxes = results[0].boxes
+        names = results[0].names
+        track_ids = results[0].boxes.id.int().cpu().tolist()
+
+        annotated_frame = results[0].plot()
+        for box, track_id, name in zip(boxes, track_ids, names):
+            x, y, w, h = box.xywh.cpu()[0]
+            cls = box.cls
+            track = self.tracked_objects[track_id]
+            track.detect()
+            if track.cropped_frame is None and len(track) > self.FRAMES_COUNT:
+                track.cropped_frame = self.crop_image_with_bbox(frame, map(float, box.xywhn.cpu()[0]))
+            track.predicted_types[results[0].names[int(cls)]] += 1
+            track.points = (float(x), float(y))
+            if self.SHOW_PREDS:
+                cv2.polylines(
+                    annotated_frame,
+                    [track.points],
+                    isClosed=False,
+                    color=(0, 255, 0),
+                    thickness=2,
+                    lineType=cv2.LINE_AA
+                )
+
+                cv2.imshow("YOLOv8 Tracking", annotated_frame)
+
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        return results
 
     def track_video(self, video: str | cv2.VideoCapture) -> None:
         if isinstance(video, str):
@@ -81,54 +126,45 @@ class Tracker(object):
             success, frame = video.read()
 
             if success:
-                results: list[Results] = self.track_next_frame(frame)
-                if results[0].boxes.id is None:
-                    if self.SHOW_PREDS:
-                        cv2.imshow("YOLOv8 Tracking", frame)
-                        if cv2.waitKey(1) & 0xFF == ord("q"):
-                            break
-                    continue
-
-                boxes = results[0].boxes
-                names = results[0].names
-                track_ids = results[0].boxes.id.int().cpu().tolist()
-
-                annotated_frame = results[0].plot()
-                if self.SHOW_PREDS:
-                    for box, track_id, name in zip(boxes, track_ids, names):
-                        x, y, w, h = box.xywh.cpu()[0]
-                        cls = box.cls
-                        track = self.tracked_objects[track_id]
-                        track.detect()
-
-                        track.predicted_types[results[0].names[int(cls)]] += 1
-                        track.points = (float(x), float(y))
-
-                        cv2.polylines(
-                            annotated_frame,
-                            [track.points],
-                            isClosed=False,
-                            color=(0, 255, 0),
-                            thickness=2,
-                            lineType=cv2.LINE_AA
-                        )
-
-                    cv2.imshow("YOLOv8 Tracking", annotated_frame)
-
-                    if cv2.waitKey(1) & 0xFF == ord("q"):
-                        break
+                self.track_next_frame(frame)
             else:
                 break
+        if self.SHOW_PREDS:
+            cv2.destroyAllWindows()
+
+    def get_objects(self):
+        return {
+            key: self.tracked_objects[key]
+            for key in filter(lambda x: len(self.tracked_objects.get(x)) > self.FRAMES_COUNT, self.tracked_objects)
+        }
+
+    @staticmethod
+    def crop_image_with_bbox(image, bbox):
+        original_height, original_width = image.shape[:2]
+
+        x_center, y_center, w, h = bbox
+
+        x_center = int(x_center * original_width)
+        y_center = int(y_center * original_height)
+        w = int(w * original_width)
+        h = int(h * original_height)
+
+        x = int(x_center - w / 2)
+        y = int(y_center - h / 2)
+
+        cropped_image = image[y:y + h, x:x + w]
+
+        return cropped_image
 
 
 if __name__ == "__main__":
-    tracker = Tracker("yolov8s.pt")
+    tracker = Tracker("yolov8n.pt")
     tracker.SHOW_PREDS = True
     tracker.SAVE = False
     try:
         tracker.track_video("./1234.mp4")
     except KeyboardInterrupt:
         pass
-    for i in tracker.tracked_objects.values():
-        if len(i) > 10:
-            print(i)
+    for num, i in enumerate(tracker.get_objects().values()):
+        print(i)
+        i.save(f"{num}.jpg")
