@@ -122,8 +122,9 @@ class Tracker(object):
 
             if success:
                 self.track_next_frame(frame)
-                if cv2.waitKey(1) & 0xFF in [ord("q"), 27]:
-                    break
+                if self.SHOW_PREDS:
+                    if cv2.waitKey(1) & 0xFF in [ord("q"), 27]:
+                        break
             else:
                 break
         if self.SHOW_PREDS:
