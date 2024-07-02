@@ -86,8 +86,6 @@ class Tracker(object):
         if results[0].boxes.id is None:
             if self.SHOW_PREDS:
                 cv2.imshow("YOLOv8 Tracking", frame)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    return results
             return results
         boxes = results[0].boxes
         names = results[0].names
@@ -114,9 +112,6 @@ class Tracker(object):
                 )
 
                 cv2.imshow("YOLOv8 Tracking", annotated_frame)
-
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
         return results
 
     def track_video(self, video: str | cv2.VideoCapture) -> None:
@@ -127,6 +122,8 @@ class Tracker(object):
 
             if success:
                 self.track_next_frame(frame)
+                if cv2.waitKey(1) & 0xFF in [ord("q"), 27]:
+                    break
             else:
                 break
         if self.SHOW_PREDS:
