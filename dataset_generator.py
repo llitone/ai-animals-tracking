@@ -57,10 +57,3 @@ class DatasetGenerator(object):
         }
         with open(os.path.join(self.path, "data.yaml"), '+w') as yaml_file:
             yaml.dump(yaml_data, yaml_file, default_flow_style=False)
-
-
-gen = DatasetGenerator("./database")
-gen.add_class("dog")
-gen.add_image("123.jpeg", "0 12 12 12 12", image_type="train")
-gen.add_image("images.jpeg", "0 12 12 12 12", image_type="train")
-gen()
