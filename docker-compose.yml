@@ -1,0 +1,27 @@
+version: '3.4'
+
+services:
+  api:
+    build:
+      context: ./tracking/
+    restart: always
+    environment:
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONUNBUFFERED: 1
+      FLASK_RUN_PORT: 9462
+      FLASK_RUN_HOST: "0.0.0.0"
+      FLASK_APP: "api.py"
+    depends_on:
+      - database
+  database:
+    build:
+      context: ./database/
+    restart: always
+    environment:
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONUNBUFFERED: 1
+      FLASK_RUN_PORT: 3568
+      FLASK_RUN_HOST: "0.0.0.0"
+      FLASK_APP: "main.py"
+    volumes:
+      - ./database/.database:/database/.database/
