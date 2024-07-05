@@ -1,4 +1,5 @@
 opencv-python~=4.10.0.84
 Flask[async]~=3.0.3
 ultralytics~=8.2.48
-numpy~=1.26.4
+#lap>=0.4.0
+lapx>=0.5.2

@@ -12,16 +12,17 @@ tracker.SAVE = False
 
 @app.route("/model/api/v1.0/track", methods=["POST"])
 async def predict():
+    save = request.args.get('save_frame', default=False, type=lambda x: x.lower() == "true")
     files = request.files
-    # print(files["files"].stream.read())
+
     img = np.frombuffer(files["files"].stream.read(), dtype=np.uint8)
     img = cv2.imdecode(img, flags=1)
 
     results: list[TrackedObject] = tracker.track_next_frame(img)
 
-    results = list(map(lambda x: x.json(send_frame=files["send_frame"]), results))
+    results = list(map(lambda x: x.json(send_frame=save), results))
 
-    return make_response(jsonify(results))
+    return make_response(jsonify(results), 200)
 
 
 if __name__ == "__main__":
