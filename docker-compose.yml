@@ -27,3 +27,9 @@ services:
       FLASK_APP: "main.py"
     volumes:
       - ./database/.database:/database/.database/
+  web:
+    build:
+      context: ./site/
+    restart: always
+    ports:
+      - "5001:5001"
