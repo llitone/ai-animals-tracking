@@ -1,13 +1,10 @@
 import cv2
 import numpy as np
-import pybboxes as pbx
 import torch
 
 from ultralytics import YOLO
 from ultralytics.trackers.basetrack import TrackState
 from ultralytics.trackers.bot_sort import BOTSORT
-from scipy.spatial import distance as dist
-from ultralytics.engine.results import Boxes
 from ultralytics.trackers.byte_tracker import STrack
 from ultralytics.trackers.utils import matching
 
