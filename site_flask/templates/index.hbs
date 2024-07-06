@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<head>
+    <link rel="stylesheet" href="/static/styles/index.css">
+    <title>Ты животное</title>
+</head>
+
+{% include "partials/header.hbs" %}
+
+<main>
+    <div class="main-upper content">
+        <div class="main_bg">
+            <div class="image-logo">
+                <img src="/static/images/Minprirody_Rossii_2.png" alt="" width="500px" height="600px">
+            </div>
+            <div class="form">
+                <form action="/api" method="post">
+                    <h2>Введите значения</h2> <br>
+                    <input type="text" name="first" placeholder="Название камеры">
+                    <input type="file" id="folderInput" webkitdirectory directory multiple>
+                    <button type="submit">Предсказать</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="/static/script/script.js">
+</script>
+
+{% include "partials/footer.hbs" %}
