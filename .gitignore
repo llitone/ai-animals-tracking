@@ -6,3 +6,5 @@
 *.pt
 *.jpg
 *.mp4
+!site/public/images/cp.jpg
+!site/public/images/md700.jpg
