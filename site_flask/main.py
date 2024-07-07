@@ -1,7 +1,7 @@
 import json
 import pandas as pd
 
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from flask import render_template
 from frames_tracker import predict
 
@@ -16,9 +16,8 @@ def hello_world():
 
 @app.route('/report', methods=['POST'])
 def report():
-    files = json_str = json.loads(request.data.decode('utf-8'))
+    files = json.loads(request.data.decode('utf-8'))
     all_animals = predict('', files)
-    fields = ['name_folder', 'class', 'date_registration_start', 'date_registration_end', 'count']
     name_folders = []
     classes = []
     date_registration_starts = []
@@ -32,13 +31,19 @@ def report():
         date_registration_ends.append(str(row['last_seen']))
         counts.append(row['count'])
 
-    dict = {'name_folder': name_folders, 'class': classes, 'date_registration_start': date_registration_starts, 'date_registration_end': date_registration_ends, 'count': counts}
-    df = pd.DataFrame(dict)
+    dataframe_data = {
+        'name_folder': name_folders,
+        'class': classes,
+        'date_registration_start': date_registration_starts,
+        'date_registration_end': date_registration_ends,
+        'count': counts
+    }
+    df = pd.DataFrame(dataframe_data)
     df.to_csv('predict.csv', index=False)
-    print(all_animals)
-    print(type(all_animals))
+    # print(all_animals)
+    # print(type(all_animals))
     return all_animals
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False, port=5001)

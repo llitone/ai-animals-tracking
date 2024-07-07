@@ -1,10 +1,6 @@
-import glob
-
-from pprint import pprint
 from collections import defaultdict
 from copy import deepcopy
-from datetime import datetime, timedelta
-
+from datetime import datetime
 from PIL import Image
 from PIL.ExifTags import TAGS
 from tqdm.auto import tqdm
