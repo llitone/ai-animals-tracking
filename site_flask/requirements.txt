@@ -8,3 +8,4 @@ opencv-python==4.10.0.84
 numpy==1.24.3
 lapx==0.5.9.post1
 scikit-learn
+dill
