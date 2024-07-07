@@ -36,6 +36,7 @@
 
 ## Описания файлов
 
+- [Веса моделей](https://drive.google.com/drive/folders/14YmiZmSwurXOYQR2_nHMRViu8XVVdHZ_?usp=sharing)
 - [Веб интерфейс](https://github.com/llitone/ai-animals-tracking/blob/main/site)
 - [Веб интерфейс на Flask](https://github.com/llitone/ai-animals-tracking/blob/main/site_flask)
 - [Реализация регистрации животного](https://github.com/llitone/ai-animals-tracking/blob/main/site_flask/frames_tracker.py)
